@@ -1,77 +1,37 @@
-Bitcoin Core integration/staging tree
-=====================================
+# Gema Core (GEM) 💎
 
-[![Build Status](https://travis-ci.org/bitcoin/bitcoin.svg?branch=master)](https://travis-ci.org/bitcoin/bitcoin)
+Bienvenido al repositorio oficial del código fuente de Gema, una criptomoneda educativa de código abierto.
 
-https://bitcoincore.org
+## ¿Qué es Gema?
 
-What is Bitcoin?
-----------------
+Gema es un proyecto experimental que nació de una simple pregunta: "¿Cómo funciona una criptomoneda desde adentro?". No es solo una copia de Bitcoin, sino una versión modificada que creamos para aprender, experimentar y construir una comunidad.
 
-Bitcoin is an experimental digital currency that enables instant payments to
-anyone, anywhere in the world. Bitcoin uses peer-to-peer technology to operate
-with no central authority: managing transactions and issuing money are carried
-out collectively by the network. Bitcoin Core is the name of open source
-software which enables the use of this currency.
+Usamos el código de **Bitcoin Core v0.18.0** como nuestra base y lo modificamos para darle características únicas. El objetivo principal de Gema es ser una herramienta de aprendizaje para cualquiera que sienta curiosidad por la tecnología blockchain.
 
-For more information, as well as an immediately useable, binary version of
-the Bitcoin Core software, see https://bitcoincore.org/en/download/, or read the
-[original whitepaper](https://bitcoincore.org/bitcoin.pdf).
+### Características Principales
 
-License
--------
+* **Algoritmo de Consenso:** Prueba de Trabajo (Proof of Work) - SHA-256
+* **Suministro Total:** 21,000,000 GEM
+* **Tiempo entre Bloques:** 5 minutos (¡El doble de rápido que Bitcoin!)
+* **Propósito:** Educativo, experimental y orientado a la comunidad.
 
-Bitcoin Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
-information or see https://opensource.org/licenses/MIT.
+Para más detalles sobre nuestra visión y los próximos pasos, por favor lee nuestro [**ROADMAP.md**](ROADMAP.md).
 
-Development Process
--------------------
+## Licencia
 
-The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
-regularly to indicate new official, stable release versions of Bitcoin Core.
+Gema Core se distribuye bajo los términos de la licencia MIT, la misma que usa Bitcoin Core. Puedes ver el archivo [COPYING](COPYING) para más información.
 
-The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md)
-and useful hints for developers can be found in [doc/developer-notes.md](doc/developer-notes.md).
+## Proceso de Desarrollo
 
-Testing
--------
+Este es un proyecto en una fase muy temprana. Estamos construyendo y aprendiendo en público. ¡Cualquier idea o contribución es bienvenida!
 
-Testing and code review is the bottleneck for development; we get more pull
-requests than we can review and test on short notice. Please be patient and help out by testing
-other people's pull requests, and remember this is a security-critical project where any mistake might cost people
-lots of money.
+El proceso de desarrollo es abierto. Si quieres proponer un cambio, corregir un error o añadir una nueva función, el flujo de trabajo se describe en [CONTRIBUTING.md](CONTRIBUTING.md) (próximamente).
 
-### Automated Testing
+## ¿Cómo Contribuir?
 
-Developers are strongly encouraged to write [unit tests](src/test/README.md) for new code, and to
-submit new unit tests for old code. Unit tests can be compiled and run
-(assuming they weren't disabled in configure) with: `make check`. Further details on running
-and extending unit tests can be found in [/src/test/README.md](/src/test/README.md).
+¡La parte más importante! El testing y la revisión de código son fundamentales. Eres bienvenido a:
+* Descargar y compilar el código.
+* Probar la red y reportar cualquier problema.
+* Proponer mejoras abriendo un "Issue" o enviando un "Pull Request".
 
-There are also [regression and integration tests](/test), written
-in Python, that are run automatically on the build server.
-These tests can be run (if the [test dependencies](/test) are installed) with: `test/functional/test_runner.py`
-
-The Travis CI system makes sure that every pull request is built for Windows, Linux, and macOS, and that unit/sanity tests are run automatically.
-
-### Manual Quality Assurance (QA) Testing
-
-Changes should be tested by somebody other than the developer who wrote the
-code. This is especially important for large or high-risk changes. It is useful
-to add a test plan to the pull request description if testing the changes is
-not straightforward.
-
-Translations
-------------
-
-Changes to translations as well as new translations can be submitted to
-[Bitcoin Core's Transifex page](https://www.transifex.com/projects/p/bitcoin/).
-
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
-
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
-
-Translators should also subscribe to the [mailing list](https://groups.google.com/forum/#!forum/bitcoin-translators).
+Recordemos que este es un proyecto para aprender. Cualquier error es una oportunidad de aprendizaje para todos.
