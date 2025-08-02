@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gema Faucet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(to right top, #0c0a1e, #1d173a, #332258, #4c2c78, #6a359a);
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            min-width: 380px;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #ffffff;
+            font-weight: 600;
+            margin-top: 0;
+        }
+        p {
+            color: #d1c4e9;
+        }
+        button {
+            background-image: linear-gradient(to right, #6a359a 0%, #a450c3 51%, #6a359a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.5s;
+            background-size: 200% auto;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        button:hover {
+            background-position: right center;
+            box-shadow: 0 0 20px #6a359a;
+        }
+        button:disabled {
+            background-image: none;
+            background-color: #333;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            min-height: 20px;
+            color: #cfcfcf;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="./logo.png" alt="Logo de Gema" class="logo">
+        
+        <h1>Gema Faucet</h1>
+        <p>¡Reclama tus wGEMA y únete a nuestra comunidad!</p>
+        
+        <button id="connectButton">Conectar Billetera</button>
+        <button id="claimButton" style="display: none;">Reclamar Tokens</button>
+        
+        <div id="status">Por favor, conecta tu billetera para empezar.</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.0/dist/ethers.umd.min.js" type="application/javascript"></script>
+   <script>
+    // --- CONFIGURACIÓN: RECUERDA RELLENAR ESTO ---
+    const faucetContractAddress = "0x78276486F40aa39fF6EBD15F569bB9D304a2ecac";
+    const faucetABI = [
+	{
+		"inputs": [],
+		"name": "requestTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_wgemaTokenAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "cooldownTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "lastClaimTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "payoutAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "wgemaToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+    // -----------------------------------------
+
+    const connectButton = document.getElementById('connectButton');
+    const claimButton = document.getElementById('claimButton');
+    const statusDiv = document.getElementById('status');
+
+    let provider;
+    let signer;
+    let faucetContract;
+
+    connectButton.addEventListener('click', async () => {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
+
+                connectButton.style.display = 'none';
+                claimButton.style.display = 'block';
+                statusDiv.textContent = "¡Billetera conectada! Listo para reclamar.";
+            } catch (error) {
+                statusDiv.textContent = "Error al conectar la billetera.";
+                console.error(error);
+            }
+        } else {
+            statusDiv.textContent = "MetaMask no está instalado. Por favor, instala la extensión.";
+        }
+    });
+
+    claimButton.addEventListener('click', async () => {
+        claimButton.disabled = true;
+        statusDiv.textContent = "Procesando tu reclamo, por favor espera...";
+
+        try {
+            const tx = await faucetContract.requestTokens();
+            statusDiv.textContent = "Esperando confirmación de la transacción...";
+            await tx.wait(); // Espera a que la transacción sea minada
+            statusDiv.textContent = "¡Éxito! Has reclamado tus wGEMA. Revisa tu billetera.";
+        } catch (error) {
+            const errorMessage = error.data ? error.data.message : (error.reason || error.message);
+            if (errorMessage.includes("Cooldown")) {
+                statusDiv.textContent = "Error: Aún no puedes reclamar. Debes esperar.";
+            } else {
+                statusDiv.textContent = "Ocurrió un error en la transacción.";
+            }
+            console.error(error);
+        } finally {
+            claimButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

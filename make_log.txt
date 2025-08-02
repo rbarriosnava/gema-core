@@ -1,0 +1,14 @@
+Making all in src
+make[1]: Entering directory '/home/rbarriosnava/gema/src'
+make[2]: Entering directory '/home/rbarriosnava/gema/src'
+make[3]: Entering directory '/home/rbarriosnava/gema'
+make[3]: Leaving directory '/home/rbarriosnava/gema'
+make[2]: Leaving directory '/home/rbarriosnava/gema/src'
+make[1]: Leaving directory '/home/rbarriosnava/gema/src'
+Making all in doc/man
+make[1]: Entering directory '/home/rbarriosnava/gema/doc/man'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/rbarriosnava/gema/doc/man'
+make[1]: Entering directory '/home/rbarriosnava/gema'
+make[1]: Nothing to be done for 'all-am'.
+make[1]: Leaving directory '/home/rbarriosnava/gema'
