@@ -1,7 +1,7 @@
 # 💎 GEMA – ROADMAP E IDEAS DE IMPLEMENTACIÓN
 
 **(Foco: valor real, adopción, comunidad y utilidad)**
-
+ 
 ---
 
 ## 🔷 Fase 1: Creación de Valor y Comunidad
