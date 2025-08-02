@@ -1,6 +1,6 @@
 # Gema Core (GEM) 💎
 
-Bienvenido al repositorio oficial del código fuente de Gema, una criptomoneda educativa de código abierto.
+Bienvenido al repositorio oficial del código fuente de Gema, una criptomoneda educativa de código abierto. 
 
 ## ¿Qué es Gema?
 
