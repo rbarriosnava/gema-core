@@ -77,6 +77,12 @@
             min-height: 20px;
             color: #cfcfcf;
         }
+	#countdown {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fdd835; /* Un color amarillo para que destaque */
+    margin-top: 15px;
+}
     </style>
 </head>
 <body>
@@ -88,14 +94,17 @@
         <p>¡Reclama tus wGEMA y únete a nuestra comunidad!</p>
         
         <button id="connectButton">Conectar Billetera</button>
-        <button id="claimButton" style="display: none;">Reclamar Tokens</button>
+        <div id="claimArea" style="display: none;">
+    <button id="claimButton">Reclamar Tokens</button>
+    <div id="countdown"></div>
+</div>
         
         <div id="status">Por favor, conecta tu billetera para empezar.</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.0/dist/ethers.umd.min.js" type="application/javascript"></script>
    <script>
-    // --- CONFIGURACIÓN: RECUERDA RELLENAR ESTO ---
+
     const faucetContractAddress = "0x78276486F40aa39fF6EBD15F569bB9D304a2ecac";
     const faucetABI = [
 	{
@@ -199,31 +208,68 @@
 
     const connectButton = document.getElementById('connectButton');
     const claimButton = document.getElementById('claimButton');
+    const claimArea = document.getElementById('claimArea');
+    const countdownDiv = document.getElementById('countdown');
     const statusDiv = document.getElementById('status');
 
     let provider;
     let signer;
     let faucetContract;
+    let userAddress;
+    let countdownInterval;
+async function checkCooldown() {
+    clearInterval(countdownInterval);
+    const lastClaim = await faucetContract.lastClaimTime(userAddress);
+    const cooldown = await faucetContract.cooldownTime();
+    const nextClaimTime = lastClaim.add(cooldown);
 
-    connectButton.addEventListener('click', async () => {
-        if (typeof window.ethereum !== 'undefined') {
-            try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-                faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
+    if (ethers.BigNumber.from(Math.floor(Date.now() / 1000)).lt(nextClaimTime)) {
+        claimButton.style.display = 'none';
+        countdownDiv.style.display = 'block';
 
-                connectButton.style.display = 'none';
+        countdownInterval = setInterval(() => {
+            const now = Math.floor(Date.now() / 1000);
+            const timeLeft = nextClaimTime.sub(now);
+
+            if (timeLeft.lte(0)) {
+                clearInterval(countdownInterval);
+                countdownDiv.style.display = 'none';
                 claimButton.style.display = 'block';
-                statusDiv.textContent = "¡Billetera conectada! Listo para reclamar.";
-            } catch (error) {
-                statusDiv.textContent = "Error al conectar la billetera.";
-                console.error(error);
+                statusDiv.textContent = "¡Listo para reclamar!";
+            } else {
+                const hours = Math.floor(timeLeft / 3600);
+                const minutes = Math.floor((timeLeft % 3600) / 60);
+                const seconds = timeLeft % 60;
+                countdownDiv.textContent = `Próximo reclamo en: ${hours}h ${minutes}m ${seconds}s`;
             }
-        } else {
-            statusDiv.textContent = "MetaMask no está instalado. Por favor, instala la extensión.";
+        }, 1000);
+    } else {
+        countdownDiv.style.display = 'none';
+        claimButton.style.display = 'block';
+    }
+}
+    
+	   connectButton.addEventListener('click', async () => {
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAddress = accounts[0];
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
+
+            connectButton.style.display = 'none';
+            claimArea.style.display = 'block';
+            statusDiv.textContent = "¡Billetera conectada!";
+            checkCooldown(); // <--- Llamada a la nueva función
+        } catch (error) {
+            statusDiv.textContent = "Error al conectar la billetera.";
+            console.error(error);
         }
-    });
+    } else {
+        statusDiv.textContent = "MetaMask no está instalado.";
+    }
+});
 
     claimButton.addEventListener('click', async () => {
         claimButton.disabled = true;
@@ -250,3 +296,4 @@
 </body>
 
 </html>
+
