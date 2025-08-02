@@ -6,18 +6,18 @@
 
 ## 🔷 Fase 1: Creación de Valor y Comunidad
 
-**1. Tokenización: wGEMA (BEP-20)**
-* Crear una versión "envuelta" (wrapped) de GEMA en la BNB Smart Chain (BEP-20).
-* Desplegar en PancakeSwap con un pool de liquidez inicial.
-* Permitir la compra/venta libre para que GEMA adquiera un precio de mercado real.
+**1. Tokenización: wGEMA (BEP-20)** (¡COMPLETADA!)
+* Crear una versión "envuelta" (wrapped) de GEMA en la BNB Smart Chain (BEP-20). HECHO
+* Desplegar en PancakeSwap con un pool de liquidez inicial. HECHO
+* Permitir la compra/venta libre para que GEMA adquiera un precio de mercado real. HECHO
 
-**2. Faucet Oficial de GEMA**
+**2. Faucet Oficial de GEMA** (EN CURSO)
 * Lanzar un sitio web para que los nuevos usuarios puedan reclamar una pequeña cantidad de GEMA gratis cada cierto tiempo.
 * Fomentar la distribución inicial y la adopción.
 
 **3. Código Abierto y Comunidad Técnica**
-* Mantener el código fuente de GEMA Core público en GitHub.
-* Crear documentación clara (README, ROADMAP, CONTRIBUTING).
+* Mantener el código fuente de GEMA Core público en GitHub. HECHO
+* Crear documentación clara (README, ROADMAP, CONTRIBUTING). HECHO
 * Establecer un canal de Discord/Telegram para desarrolladores y establecer un sistema de recompensas (bounties) por contribuciones.
 
 ---
