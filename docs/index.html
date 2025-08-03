@@ -9,291 +9,183 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0f0c29;
-            background-image: linear-gradient(to right top, #0c0a1e, #1d173a, #332258, #4c2c78, #6a359a);
-            color: #e0e0e0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            min-width: 380px;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #ffffff;
-            font-weight: 600;
-            margin-top: 0;
-        }
-        p {
-            color: #d1c4e9;
-        }
-        button {
-            background-image: linear-gradient(to right, #6a359a 0%, #a450c3 51%, #6a359a 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.5s;
-            background-size: 200% auto;
-            margin-top: 10px;
-            text-transform: uppercase;display: block; 
-            margin-left: auto; 
-            margin-right: auto; 
-        }
-        button:hover {
-            background-position: right center;
-            box-shadow: 0 0 20px #6a359a;
-        }
-        button:disabled {
-            background-image: none;
-            background-color: #333;
-            color: #888;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 14px;
-            min-height: 20px;
-            color: #cfcfcf;
-        }
-	#countdown {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fdd835; /* Un color amarillo para que destaque */
-    margin-top: 15px;
-}
+        body { font-family: 'Poppins', sans-serif; background-color: #0f0c29; background-image: linear-gradient(to right top, #0c0a1e, #1d173a, #332258, #4c2c78, #6a359a); color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); min-width: 400px; }
+        .logo { width: 80px; height: 80px; margin-bottom: 20px; }
+        h1 { color: #ffffff; font-weight: 600; margin-top: 0; }
+        p { color: #d1c4e9; }
+        button { background-image: linear-gradient(to right, #6a359a 0%, #a450c3 51%, #6a359a 100%); color: white; border: none; padding: 15px 30px; font-size: 16px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: 0.5s; background-size: 200% auto; margin-top: 20px; text-transform: uppercase; display: block; margin-left: auto; margin-right: auto; }
+        button:hover { background-position: right center; box-shadow: 0 0 20px #6a359a; }
+        button:disabled { background-image: none; background-color: #333; color: #888; cursor: not-allowed; box-shadow: none; }
+        #status { margin-top: 20px; font-size: 14px; min-height: 20px; color: #cfcfcf; }
+        #countdown { font-size: 16px; font-weight: 600; color: #fdd835; margin-top: 15px; }
+        #userBalanceText { font-size: 18px; color: white; font-weight: 600; }
     </style>
+    
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 </head>
 <body>
 
     <div class="container">
         <img src="./logo.png" alt="Logo de Gema" class="logo">
-        
-        <h1>Gema Faucet</h1>
-        <p>¡Reclama tus wGEMA y únete a nuestra comunidad!</p>
+        <h1>Gema Faucet V2</h1>
+        <p id="userBalanceText">Conecta tu billetera para ver tu saldo.</p>
         
         <button id="connectButton">Conectar Billetera</button>
-        <div id="claimArea" style="display: none;">
-    <button id="claimButton">Reclamar Tokens</button>
-    <div id="countdown"></div>
-</div>
+
+        <div id="actionArea" style="display: none;">
+            <div class="h-captcha" 
+                 data-sitekey="PEGA_AQUÍ_TU_SITE_KEY_DE_HCAPTCHA"
+                 data-callback="onCaptchaVerified"
+                 data-expired-callback="onCaptchaExpired">
+            </div>
+            
+            <button id="claimButton" disabled>Acumular Recompensa</button>
+            <button id="withdrawButton" disabled>Retirar Saldo</button>
+            <div id="countdown"></div>
+        </div>
         
-        <div id="status">Por favor, conecta tu billetera para empezar.</div>
+        <div id="status"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.0/dist/ethers.umd.min.js" type="application/javascript"></script>
-   <script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.0/dist/ethers.umd.min.js"></script>
+    <script>
+        // --- CONFIGURACIÓN ---
+        const faucetContractAddress = "PEGA_AQUÍ_LA_DIRECCIÓN_DE_TU_NUEVO_CONTRATO_FAUCETV2";
+        const faucetABI = [/* PEGA_AQUÍ_EL_ABI_DE_TU_NUEVO_CONTRATO_FAUCETV2 */];
+        // ---------------------
 
-    const faucetContractAddress = "0x78276486F40aa39fF6EBD15F569bB9D304a2ecac";
-    const faucetABI = [
-	{
-		"inputs": [],
-		"name": "requestTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_wgemaTokenAddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "cooldownTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastClaimTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "payoutAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "wgemaToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-    // -----------------------------------------
+        const connectButton = document.getElementById('connectButton');
+        const actionArea = document.getElementById('actionArea');
+        const claimButton = document.getElementById('claimButton');
+        const withdrawButton = document.getElementById('withdrawButton');
+        const statusDiv = document.getElementById('status');
+        const countdownDiv = document.getElementById('countdown');
+        const userBalanceText = document.getElementById('userBalanceText');
 
-    const connectButton = document.getElementById('connectButton');
-    const claimButton = document.getElementById('claimButton');
-    const claimArea = document.getElementById('claimArea');
-    const countdownDiv = document.getElementById('countdown');
-    const statusDiv = document.getElementById('status');
+        let provider, signer, faucetContract, userAddress;
+        let countdownInterval;
 
-    let provider;
-    let signer;
-    let faucetContract;
-    let userAddress;
-    let countdownInterval;
-async function checkCooldown() {
-    clearInterval(countdownInterval);
-    const lastClaim = await faucetContract.lastClaimTime(userAddress);
-    const cooldown = await faucetContract.cooldownTime();
-    const nextClaimTime = lastClaim.add(cooldown);
-
-    if (ethers.BigNumber.from(Math.floor(Date.now() / 1000)).lt(nextClaimTime)) {
-        claimButton.style.display = 'none';
-        countdownDiv.style.display = 'block';
-
-        countdownInterval = setInterval(() => {
-            const now = Math.floor(Date.now() / 1000);
-            const timeLeft = nextClaimTime.sub(now);
-
-            if (timeLeft.lte(0)) {
-                clearInterval(countdownInterval);
-                countdownDiv.style.display = 'none';
-                claimButton.style.display = 'block';
-                statusDiv.textContent = "¡Listo para reclamar!";
-            } else {
-                const hours = Math.floor(timeLeft / 3600);
-                const minutes = Math.floor((timeLeft % 3600) / 60);
-                const seconds = timeLeft % 60;
-                countdownDiv.textContent = `Próximo reclamo en: ${hours}h ${minutes}m ${seconds}s`;
-            }
-        }, 1000);
-    } else {
-        countdownDiv.style.display = 'none';
-        claimButton.style.display = 'block';
-    }
-}
-	   connectButton.addEventListener('click', async () => {
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            userAddress = accounts[0];
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
-            faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
-
-            connectButton.style.display = 'none';
-            claimArea.style.display = 'block';
-            statusDiv.textContent = "¡Billetera conectada!";
-            checkCooldown(); // <--- Llamada a la nueva función
-        } catch (error) {
-            statusDiv.textContent = "Error al conectar la billetera.";
-            console.error(error);
-        }
-    } else {
-        statusDiv.textContent = "MetaMask no está instalado.";
-    }
-});
-
-    claimButton.addEventListener('click', async () => {
-        claimButton.disabled = true;
-        statusDiv.textContent = "Procesando tu reclamo, por favor espera...";
-
-        try {
-            const tx = await faucetContract.requestTokens();
-            statusDiv.textContent = "Esperando confirmación de la transacción...";
-            await tx.wait(); // Espera a que la transacción sea minada
-            statusDiv.textContent = "¡Éxito! Has reclamado tus wGEMA. Revisa tu billetera.";
-        } catch (error) {
-            const errorMessage = error.data ? error.data.message : (error.reason || error.message);
-            if (errorMessage.includes("Cooldown")) {
-                statusDiv.textContent = "Error: Aún no puedes reclamar. Debes esperar.";
-            } else {
-                statusDiv.textContent = "Ocurrió un error en la transacción.";
-            }
-            console.error(error);
-        } finally {
+        function onCaptchaVerified() {
             claimButton.disabled = false;
         }
-    });
-</script>
+
+        function onCaptchaExpired() {
+            claimButton.disabled = true;
+        }
+        
+        async function updateUI() {
+            try {
+                const balance = await faucetContract.userBalances(userAddress);
+                const withdrawalMin = await faucetContract.withdrawalMin();
+                
+                userBalanceText.textContent = `Tu Saldo Acumulado: ${ethers.utils.formatUnits(balance, 18)} wGEMA`;
+                
+                if (balance.gte(withdrawalMin)) {
+                    withdrawButton.disabled = false;
+                    statusDiv.textContent = "¡Ya puedes retirar tu saldo!";
+                } else {
+                    withdrawButton.disabled = true;
+                    const min = ethers.utils.formatUnits(withdrawalMin, 18);
+                    statusDiv.textContent = `Necesitas ${min} wGEMA para retirar.`;
+                }
+                
+                await checkCooldown();
+            } catch (error) {
+                console.error("Error updating UI:", error);
+                statusDiv.textContent = "Error al actualizar los datos.";
+            }
+        }
+
+        async function checkCooldown() {
+            clearInterval(countdownInterval);
+            claimButton.style.display = 'none';
+            countdownDiv.style.display = 'none';
+
+            try {
+                const lastClaim = await faucetContract.lastClaimTime(userAddress);
+                const cooldown = await faucetContract.cooldownTime();
+                const nextClaimTime = lastClaim.add(cooldown);
+
+                if (ethers.BigNumber.from(Math.floor(Date.now() / 1000)).lt(nextClaimTime)) {
+                    countdownDiv.style.display = 'block';
+                    claimButton.style.display = 'none';
+                    countdownInterval = setInterval(() => {
+                        const now = Math.floor(Date.now() / 1000);
+                        const timeLeft = nextClaimTime.sub(now);
+
+                        if (timeLeft.lte(0)) {
+                            clearInterval(countdownInterval);
+                            countdownDiv.style.display = 'none';
+                            claimButton.style.display = 'block';
+                            if (window.hcaptcha) window.hcaptcha.reset(); // Resetea el captcha
+                        } else {
+                            const hours = Math.floor(timeLeft / 3600);
+                            const minutes = Math.floor((timeLeft % 3600) / 60);
+                            const seconds = Math.floor(timeLeft % 60);
+                            countdownDiv.textContent = `Próximo reclamo en: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                        }
+                    }, 1000);
+                } else {
+                    claimButton.style.display = 'block';
+                }
+            } catch (error) {
+                console.error("Error checking cooldown:", error);
+                claimButton.style.display = 'block';
+            }
+        }
+
+        connectButton.addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAddress = accounts[0];
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
+                    
+                    connectButton.style.display = 'none';
+                    actionArea.style.display = 'block';
+                    await updateUI();
+                } catch (error) {
+                    statusDiv.textContent = "Error al conectar la billetera.";
+                    console.error(error);
+                }
+            } else {
+                statusDiv.textContent = "MetaMask no está instalado.";
+            }
+        });
+
+        claimButton.addEventListener('click', async () => {
+            claimButton.disabled = true;
+            statusDiv.textContent = "Procesando reclamo...";
+            try {
+                const tx = await faucetContract.claimTokens();
+                await tx.wait();
+                statusDiv.textContent = "¡Recompensa acumulada con éxito!";
+                await updateUI();
+                if (window.hcaptcha) window.hcaptcha.reset();
+            } catch (error) {
+                const reason = error.reason || "Ocurrió un error.";
+                statusDiv.textContent = `Error: ${reason}`;
+                claimButton.disabled = false;
+            }
+        });
+
+        withdrawButton.addEventListener('click', async () => {
+            withdrawButton.disabled = true;
+            statusDiv.textContent = "Procesando retiro...";
+            try {
+                const tx = await faucetContract.withdrawTokens();
+                await tx.wait();
+                statusDiv.textContent = "¡Retiro exitoso! Revisa tu MetaMask.";
+                await updateUI();
+            } catch (error) {
+                const reason = error.reason || "Ocurrió un error.";
+                statusDiv.textContent = `Error: ${reason}`;
+                await updateUI();
+            }
+        });
+    </script>
 </body>
-
 </html>
-
-
