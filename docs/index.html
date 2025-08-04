@@ -158,6 +158,28 @@
                 hcaptcha.reset(); // Resetea el captcha después del intento
             }
         });
+        withdrawButton.addEventListener('click', async () => {
+    withdrawButton.disabled = true;
+    statusDiv.textContent = "Procesando retiro, por favor espera...";
+    try {
+        const response = await fetch(`${backendUrl}/withdraw`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address: userAddress })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            statusDiv.innerHTML = `¡Retiro en proceso! <a href="https://bscscan.com/tx/${data.txHash}" target="_blank">Ver transacción</a>`;
+        } else {
+            statusDiv.textContent = `Error: ${data.error}`;
+        }
+        await updateUI();
+    } catch (error) {
+        console.error("Error withdrawing:", error);
+        statusDiv.textContent = "Error de comunicación con el servidor.";
+    }
+});
     </script>
 </body>
 </html>
+
