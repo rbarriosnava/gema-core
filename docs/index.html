@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -35,13 +36,11 @@
 
         <div id="actionArea" style="display: none;">
             <div class="h-captcha" 
-                 data-sitekey="96d22f9a-78a8-4c16-88c2-470c2526cca8"
-                 data-callback="onCaptchaVerified"
-                 data-expired-callback="onCaptchaExpired">
-            </div>
+                 data-sitekey="96d22f9a-78a8-4c16-88c2-470c2526cca8">
+                 </div>
             
-            <button id="claimButton" disabled>Acumular Recompensa</button>
-            <button id="withdrawButton" disabled>Retirar Saldo</button>
+            <button id="claimButton">Acumular Recompensa</button>
+            <button id="withdrawButton" disabled>Retirar Saldo (Próximamente)</button>
             <div id="countdown"></div>
         </div>
         
@@ -50,249 +49,44 @@
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.0/dist/ethers.umd.min.js"></script>
     <script>
-        // --- CONFIGURACIÓN ---
-        const faucetContractAddress = "0x7081aC9412034Ca8E87a66b751feb89f20A93474";
-        const faucetABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_wgemaTokenAddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "Claimed",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "claimTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "Withdrawn",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "cooldownTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "lastClaimTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "payoutAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "userBalances",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "wgemaToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawalMin",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-        // ---------------------
+        // --- CONFIGURACIÓN: ¡DEBES RELLENAR ESTO! ---
+        const backendUrl = "https://9edc7acc-018f-45b2-9761-d9a9ce5ce261-00-2m11yzpi2xiuj.picard.replit.dev/";
+        // ---------------------------------------------
 
         const connectButton = document.getElementById('connectButton');
         const actionArea = document.getElementById('actionArea');
         const claimButton = document.getElementById('claimButton');
-        const withdrawButton = document.getElementById('withdrawButton');
         const statusDiv = document.getElementById('status');
-        const countdownDiv = document.getElementById('countdown');
         const userBalanceText = document.getElementById('userBalanceText');
+        const countdownDiv = document.getElementById('countdown');
 
-        let provider, signer, faucetContract, userAddress;
+        let userAddress;
         let countdownInterval;
 
-        function onCaptchaVerified() {
-            claimButton.disabled = false;
-        }
-
-        function onCaptchaExpired() {
-            claimButton.disabled = true;
-        }
-        
         async function updateUI() {
+            if (!userAddress) return;
             try {
-                const balance = await faucetContract.userBalances(userAddress);
-                const withdrawalMin = await faucetContract.withdrawalMin();
-                
-                userBalanceText.textContent = `Tu Saldo Acumulado: ${ethers.utils.formatUnits(balance, 18)} wGEMA`;
-                
-                if (balance.gte(withdrawalMin)) {
-                    withdrawButton.disabled = false;
-                    statusDiv.textContent = "¡Ya puedes retirar tu saldo!";
-                } else {
-                    withdrawButton.disabled = true;
-                    const min = ethers.utils.formatUnits(withdrawalMin, 18);
-                    statusDiv.textContent = `Necesitas ${min} wGEMA para retirar.`;
+                const response = await fetch(`${backendUrl}/balance/${userAddress}`);
+                if (!response.ok) {
+                    throw new Error("Error al cargar el saldo.");
                 }
+                const data = await response.json();
                 
-                await checkCooldown();
-            } catch (error) {
-                console.error("Error updating UI:", error);
-                statusDiv.textContent = "Error al actualizar los datos.";
-            }
-        }
+                userBalanceText.textContent = `Tu Saldo Acumulado: ${data.balance} wGEMA`;
+                
+                clearInterval(countdownInterval);
+                const nextClaimTime = data.nextClaim;
+                const now = Math.floor(Date.now() / 1000);
 
-        async function checkCooldown() {
-            clearInterval(countdownInterval);
-            claimButton.style.display = 'none';
-            countdownDiv.style.display = 'none';
-
-            try {
-                const lastClaim = await faucetContract.lastClaimTime(userAddress);
-                const cooldown = await faucetContract.cooldownTime();
-                const nextClaimTime = lastClaim.add(cooldown);
-
-                if (ethers.BigNumber.from(Math.floor(Date.now() / 1000)).lt(nextClaimTime)) {
+                if (now < nextClaimTime) {
+                    claimButton.disabled = true;
                     countdownDiv.style.display = 'block';
-                    claimButton.style.display = 'none';
                     countdownInterval = setInterval(() => {
-                        const now = Math.floor(Date.now() / 1000);
-                        const timeLeft = nextClaimTime.sub(now);
-
-                        if (timeLeft.lte(0)) {
+                        const timeLeft = nextClaimTime - Math.floor(Date.now() / 1000);
+                        if (timeLeft <= 0) {
                             clearInterval(countdownInterval);
-                            countdownDiv.style.display = 'none';
-                            claimButton.style.display = 'block';
-                            if (window.hcaptcha) window.hcaptcha.reset(); // Resetea el captcha
+                            countdownDiv.textContent = "¡Ya puedes reclamar!";
+                            claimButton.disabled = false;
                         } else {
                             const hours = Math.floor(timeLeft / 3600);
                             const minutes = Math.floor((timeLeft % 3600) / 60);
@@ -301,11 +95,12 @@
                         }
                     }, 1000);
                 } else {
-                    claimButton.style.display = 'block';
+                    claimButton.disabled = false;
+                    countdownDiv.style.display = 'none';
                 }
             } catch (error) {
-                console.error("Error checking cooldown:", error);
-                claimButton.style.display = 'block';
+                console.error("Error updating UI:", error);
+                userBalanceText.textContent = "Error al conectar con el servidor del Faucet.";
             }
         }
 
@@ -314,54 +109,55 @@
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     userAddress = accounts[0];
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-                    faucetContract = new ethers.Contract(faucetContractAddress, faucetABI, signer);
                     
                     connectButton.style.display = 'none';
                     actionArea.style.display = 'block';
+                    statusDiv.textContent = `Conectado: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
                     await updateUI();
-                } catch (error) {
-                    statusDiv.textContent = "Error al conectar la billetera.";
+                } catch (error) { 
+                    statusDiv.textContent = "Conexión rechazada por el usuario.";
                     console.error(error);
                 }
-            } else {
-                statusDiv.textContent = "MetaMask no está instalado.";
+            } else { 
+                statusDiv.textContent = "MetaMask no está instalado."; 
             }
         });
 
         claimButton.addEventListener('click', async () => {
+            const captchaResponse = hcaptcha.getResponse();
+            if (!captchaResponse) {
+                statusDiv.textContent = "Por favor, completa el captcha primero.";
+                return;
+            }
+
             claimButton.disabled = true;
             statusDiv.textContent = "Procesando reclamo...";
             try {
-                const tx = await faucetContract.claimTokens();
-                await tx.wait();
-                statusDiv.textContent = "¡Recompensa acumulada con éxito!";
-                await updateUI();
-                if (window.hcaptcha) window.hcaptcha.reset();
-            } catch (error) {
-                const reason = error.reason || "Ocurrió un error.";
-                statusDiv.textContent = `Error: ${reason}`;
-                claimButton.disabled = false;
-            }
-        });
+                const response = await fetch(`${backendUrl}/claim`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        address: userAddress,
+                        captcha: captchaResponse // Enviamos el captcha para verificación (paso futuro en el server)
+                    })
+                });
 
-        withdrawButton.addEventListener('click', async () => {
-            withdrawButton.disabled = true;
-            statusDiv.textContent = "Procesando retiro...";
-            try {
-                const tx = await faucetContract.withdrawTokens();
-                await tx.wait();
-                statusDiv.textContent = "¡Retiro exitoso! Revisa tu MetaMask.";
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.textContent = "¡Recompensa acumulada con éxito!";
+                } else {
+                    statusDiv.textContent = `Error: ${data.error}`;
+                }
                 await updateUI();
             } catch (error) {
-                const reason = error.reason || "Ocurrió un error.";
-                statusDiv.textContent = `Error: ${reason}`;
-                await updateUI();
+                console.error("Error claiming:", error);
+                statusDiv.textContent = "Error de comunicación con el servidor.";
+                claimButton.disabled = false;
+            } finally {
+                hcaptcha.reset(); // Resetea el captcha después del intento
             }
         });
     </script>
 </body>
 </html>
-
-
