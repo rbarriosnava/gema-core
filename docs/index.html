@@ -64,45 +64,14 @@
         let countdownInterval;
 
         async function updateUI() {
-            if (!userAddress) return;
-            try {
-                const response = await fetch(`${backendUrl}/balance/${userAddress}`);
-                if (!response.ok) {
-                    throw new Error("Error al cargar el saldo.");
-                }
-                const data = await response.json();
-                
-                userBalanceText.textContent = `Tu Saldo Acumulado: ${data.balance} wGEMA`;
-                
-                clearInterval(countdownInterval);
-                const nextClaimTime = data.nextClaim;
-                const now = Math.floor(Date.now() / 1000);
-
-                if (now < nextClaimTime) {
-                    claimButton.disabled = true;
-                    countdownDiv.style.display = 'block';
-                    countdownInterval = setInterval(() => {
-                        const timeLeft = nextClaimTime - Math.floor(Date.now() / 1000);
-                        if (timeLeft <= 0) {
-                            clearInterval(countdownInterval);
-                            countdownDiv.textContent = "¡Ya puedes reclamar!";
-                            claimButton.disabled = false;
-                        } else {
-                            const hours = Math.floor(timeLeft / 3600);
-                            const minutes = Math.floor((timeLeft % 3600) / 60);
-                            const seconds = Math.floor(timeLeft % 60);
-                            countdownDiv.textContent = `Próximo reclamo en: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                        }
-                    }, 1000);
-                } else {
-                    claimButton.disabled = false;
-                    countdownDiv.style.display = 'none';
-                }
-            } catch (error) {
-                console.error("Error updating UI:", error);
-                userBalanceText.textContent = "Error al conectar con el servidor del Faucet.";
-            }
-        }
+    // ... (código igual que antes)
+    // Solo asegúrate de que el botón de retiro se active
+    if (data.balance >= WITHDRAWAL_MIN_FROM_SERVER) { // Necesitarás obtener WITHDRAWAL_MIN del servidor
+        withdrawButton.disabled = false;
+    } else {
+        withdrawButton.disabled = true;
+    }
+}
 
         connectButton.addEventListener('click', async () => {
             if (typeof window.ethereum !== 'undefined') {
@@ -182,4 +151,5 @@
     </script>
 </body>
 </html>
+
 
