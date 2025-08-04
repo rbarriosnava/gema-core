@@ -67,8 +67,10 @@ def claim_tokens():
     user_address = data['address'].lower()
     current_time = int(time.time())
 
-    if user_address not in user_data:
-        user_data[user_address] = {"balance": 0, "last_claim": 0}
+    # Si el usuario es nuevo, lo añadimos a nuestra "base de datos"
+# y asignamos los valores iniciales ANTES de continuar.
+if user_address not in user_data:
+    user_data[user_address] = {"balance": 0, "last_claim": 0}
 
     if current_time < user_data[user_address]["last_claim"] + COOLDOWN_SECONDS:
         print(f"--> ERROR: Cooldown activo para {user_address}.")
